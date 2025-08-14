@@ -20,3 +20,6 @@ yellowstone-grpc-proto = { workspace = true }
 yellowstone-grpc-client = { workspace = true }
 redis = { version = "0.24", features = ["aio", "tokio-comp"] }
 chrono = { version = "0.4", features = ["serde"] }
+axum = "0.7"
+thiserror = "1.0"
+bs58 = "0.5"

@@ -7,12 +7,14 @@
 #![warn(clippy::pedantic)]
 #![allow(clippy::module_name_repetitions)]
 
-use std::path::PathBuf;
+use std::{net::SocketAddr, path::PathBuf};
 
 use clap::Parser as _;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use yellowstone_vixen::{self as vixen, vixen_core::proto::Proto};
-use yellowstone_vixen_chainstack_grpc_source::ChainstackGrpcSource;
+use yellowstone_vixen_chainstack_grpc_source::{
+    ChainstackGrpcSource, RedisWriterConfig,
+};
 
 // Import parser dependencies like stream-parser example
 use yellowstone_vixen_jupiter_swap_parser::{
@@ -56,6 +58,15 @@ pub struct Opts {
     
     #[arg(long)]
     redis_url: Option<String>,
+    
+    #[arg(long, default_value = "127.0.0.1:8080")]
+    filter_api_addr: SocketAddr,
+    
+    #[arg(long, default_value = "100")]
+    redis_batch_size: usize,
+    
+    #[arg(long, default_value = "1000000")]
+    redis_max_entries: usize,
 }
 
 fn main() {
@@ -64,20 +75,52 @@ fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let Opts { config, api_key, redis_url } = Opts::parse();
+    let Opts { 
+        config, 
+        api_key, 
+        redis_url, 
+        filter_api_addr, 
+        redis_batch_size, 
+        redis_max_entries 
+    } = Opts::parse();
+    
     let config = std::fs::read_to_string(config).expect("Error reading config file");
     let mut yellowstone_config = toml::from_str(&config).expect("Error parsing config");
     
-    // Set API key via x_token if provided
+    // Set API key via x_token if provided (Phase 1 pattern)
     if let Some(api_key) = api_key {
         yellowstone_config.x_token = Some(api_key);
     }
 
-    // Create source with optional Redis streaming
+    // Create source with Phase 2 & 3 optimizations
     let mut source = ChainstackGrpcSource::new();
+    
+    // Phase 3: Essential Redis streaming with optimized configuration
     if let Some(redis_url) = redis_url {
-        source = source.with_redis_streaming(redis_url, "chainstack_data");
+        let redis_config = RedisWriterConfig {
+            redis_url,
+            stream_name: "essential_transactions".to_string(),
+            batch_size: redis_batch_size,
+            max_stream_entries: redis_max_entries,
+            ..Default::default()
+        };
+        
+        source = source.with_essential_redis_streaming(redis_config)
+            .expect("Failed to configure essential Redis streaming");
     }
+    
+    // Phase 2: Enable Filter API for real-time filter management
+    source = source.with_filter_api(filter_api_addr);
+
+    println!("🚀 Starting Chainstack Yellowstone gRPC integration");
+    println!("📡 Filter API available at: http://{}", filter_api_addr);
+    println!("🔧 Redis streaming: {}", if redis_url.is_some() { "enabled (essential transactions only)" } else { "disabled" });
+    println!();
+    println!("Filter API endpoints:");
+    println!("  GET  /filters         - List current filters");
+    println!("  POST /filters/update  - Update a filter");
+    println!("  POST /filters/remove  - Remove a filter");
+    println!();
 
     vixen::Runtime::builder()
         .source(source)
