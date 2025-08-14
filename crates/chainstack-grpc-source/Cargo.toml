@@ -9,7 +9,7 @@ readme = "./README.md"
 
 [dependencies]
 async-trait = "0.1.88"
-tokio = { version = "1.37.0", features = ["rt-multi-thread", "signal", "sync"] }
+tokio = { version = "1.37.0", features = ["rt-multi-thread", "signal", "sync", "time"] }
 tracing = "0.1.40"
 futures-util = { version = "0.3.30", features = ["sink"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -19,8 +19,4 @@ yellowstone-vixen-core = { workspace = true }
 yellowstone-grpc-proto = { workspace = true }
 yellowstone-grpc-client = { workspace = true }
 redis = { version = "0.24", features = ["aio", "tokio-comp"] }
-uuid = { version = "1.0", features = ["v4"] }
-thiserror = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
-warp = "0.3"
-num_cpus = "1.0"
