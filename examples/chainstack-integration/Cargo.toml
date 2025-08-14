@@ -1,0 +1,25 @@
+[package]
+name = "chainstack-integration-example"
+version = "0.1.0"
+edition = "2021"
+description = "Chainstack Yellowstone gRPC integration example"
+
+[dependencies]
+yellowstone-vixen = { workspace = true }
+yellowstone-vixen-core = { workspace = true }
+yellowstone-vixen-chainstack-grpc-source = { workspace = true }
+yellowstone-vixen-parser = { workspace = true }
+
+# Parser dependencies
+yellowstone-vixen-jupiter-swap-parser = { workspace = true }
+yellowstone-vixen-raydium-amm-v4-parser = { workspace = true }
+yellowstone-vixen-raydium-clmm-parser = { workspace = true }
+yellowstone-vixen-meteora-parser = { workspace = true }
+yellowstone-vixen-pumpfun-parser = { workspace = true }
+
+# Common dependencies
+tokio = { version = "1.37.0", features = ["rt-multi-thread", "signal", "macros"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4.0", features = ["derive", "env"] }
+toml = "0.8"

@@ -1,0 +1,25 @@
+[package]
+name = "yellowstone-vixen-chainstack-grpc-source"
+version = "0.2.0"
+edition = "2021"
+description = "Chainstack Yellowstone gRPC source for the Yellowstone Vixen"
+license = "MIT"
+repository = "https://github.com/rpcpool/yellowstone-vixen"
+readme = "./README.md"
+
+[dependencies]
+async-trait = "0.1.88"
+tokio = { version = "1.37.0", features = ["rt-multi-thread", "signal", "sync", "time"] }
+tracing = "0.1.40"
+futures-util = { version = "0.3.30", features = ["sink"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+yellowstone-vixen = { workspace = true }
+yellowstone-vixen-core = { workspace = true }
+yellowstone-grpc-proto = { workspace = true }
+yellowstone-grpc-client = { workspace = true }
+redis = { version = "0.24", features = ["aio", "tokio-comp"] }
+chrono = { version = "0.4", features = ["serde"] }
+axum = "0.7"
+thiserror = "1.0"
+bs58 = "0.5"
