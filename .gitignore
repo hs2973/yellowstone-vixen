@@ -6,7 +6,7 @@ Vixen.toml
 *.lock
 
 crates/*-parser/idl.json
-crates/src/generated_*/
+crates/*/src/generated_*/
 crates/parser/fixtures/
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
