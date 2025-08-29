@@ -1,0 +1,49 @@
+[package]
+name = "solana-stream-processor"
+version = "0.1.0"
+edition = "2021"
+description = "Real-time Solana stream processor built on yellowstone-vixen"
+license = "MIT"
+repository = "https://github.com/hs2973/yellowstone-vixen"
+
+[dependencies]
+# Core dependencies
+tokio = { version = "1.0", features = ["full"] }
+tokio-stream = "0.1"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8.12"
+clap = { version = "4.5.4", features = ["derive", "cargo", "wrap_help"] }
+anyhow = "1.0"
+async-trait = "0.1"
+chrono = "0.4"
+
+# Web server and SSE
+axum = { version = "0.7", features = ["ws", "tokio"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+futures-util = "0.3"
+
+# Database
+mongodb = "2.8"
+
+# Metrics
+prometheus = "0.13"
+metrics = "0.22"
+metrics-prometheus = "0.6"
+
+# Yellowstone Vixen dependencies - using relative paths to existing crates
+yellowstone-vixen = { path = "../crates/runtime" }
+yellowstone-vixen-core = { path = "../crates/core" }
+# yellowstone-vixen-pumpfun-parser = { path = "../crates/pumpfun-parser" }
+# yellowstone-vixen-moonshot-parser = { path = "../crates/moonshot-parser" }
+yellowstone-vixen-yellowstone-grpc-source = { path = "../crates/yellowstone-grpc-source" }
+yellowstone-vixen-solana-rpc-source = { path = "../crates/solana-rpc-source" }
+
+# Additional parsers that exist
+yellowstone-vixen-proto = { path = "../crates/proto" }
+
+[dev-dependencies]
+tokio-test = "0.4"
