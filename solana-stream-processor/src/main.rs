@@ -335,7 +335,7 @@ impl DataProcessor {
     async fn process_update(
         &self,
         update: yellowstone_grpc_proto::geyser::SubscribeUpdate,
-    ) -> Result<Option<models::ParsedData>, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<Option<models::ParsedData>, anyhow::Error> {
         use yellowstone_grpc_proto::geyser::subscribe_update::UpdateOneof;
 
         match update.update_oneof {
@@ -343,7 +343,7 @@ impl DataProcessor {
                 // Convert to vixen format
                 let account_update = convert_account_update(account_update)?;
                 self.parser.parse_account_update(&account_update).await
-                    .map_err(|e| e.into())
+                    .map_err(|e| anyhow::anyhow!("Parse error: {:?}", e))
             }
             Some(UpdateOneof::Transaction(tx_update)) => {
                 // Process instructions from transaction
@@ -375,8 +375,8 @@ impl DataProcessor {
 /// Convert Yellowstone account update to Vixen format
 fn convert_account_update(
     update: yellowstone_grpc_proto::geyser::SubscribeUpdateAccount,
-) -> Result<AccountUpdate, Box<dyn std::error::Error + Send + Sync>> {
-    let account_info = update.account.ok_or("Missing account in update")?;
+) -> Result<AccountUpdate, anyhow::Error> {
+    let account_info = update.account.ok_or_else(|| anyhow::anyhow!("Missing account in update"))?;
     
     Ok(AccountUpdate {
         pubkey: account_info.pubkey.try_into()?,
@@ -396,8 +396,8 @@ fn convert_account_update(
 fn convert_instruction_update(
     instruction: &yellowstone_grpc_proto::geyser::InnerInstruction,
     tx_update: &yellowstone_grpc_proto::geyser::SubscribeUpdateTransaction,
-) -> Result<InstructionUpdate, Box<dyn std::error::Error + Send + Sync>> {
-    let tx = tx_update.transaction.as_ref().ok_or("Missing transaction")?;
+) -> Result<InstructionUpdate, anyhow::Error> {
+    let tx = tx_update.transaction.as_ref().ok_or_else(|| anyhow::anyhow!("Missing transaction"))?;
     
     Ok(InstructionUpdate {
         signature: tx.signature.clone().try_into()?,

@@ -211,20 +211,20 @@ async fn stream_events(
 
     let rx = state.broadcast_tx.subscribe();
     let stream = BroadcastStream::new(rx)
-        .filter_map(|result| async move {
+        .map(|result| {
             match result {
                 Ok(data) => {
                     match serde_json::to_string(&data) {
-                        Ok(json) => Some(Ok(Event::default().data(json))),
+                        Ok(json) => Ok(Event::default().data(json)),
                         Err(e) => {
                             error!("Failed to serialize data for SSE: {}", e);
-                            None
+                            Err(axum::Error::new(e))
                         }
                     }
                 }
                 Err(e) => {
                     error!("Broadcast receiver error: {}", e);
-                    None
+                    Err(axum::Error::new(e))
                 }
             }
         });
@@ -374,7 +374,7 @@ async fn get_programs() -> Json<ApiResponse<Vec<ProgramMetadata>>> {
 /// Get statistics for a specific program
 async fn get_program_stats(
     Path(program): Path<String>,
-    State(state): State<AppState>,
+    State(_state): State<AppState>,
 ) -> Result<Json<ApiResponse<serde_json::Value>>, StatusCode> {
     // This is a placeholder for program-specific statistics
     // In a full implementation, you would query MongoDB for counts,

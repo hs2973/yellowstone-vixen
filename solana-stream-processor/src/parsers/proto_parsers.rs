@@ -41,7 +41,7 @@ impl UnifiedParser {
             }
         };
 
-        let program_id = account.owner.to_string();
+        let program_id = hex::encode(&account.owner);
         let program_metadata = match self.program_metadata.get(&program_id) {
             Some(metadata) => metadata,
             None => {
@@ -55,7 +55,7 @@ impl UnifiedParser {
 
         let account_data = ParsedAccountData {
             id: Uuid::new_v4().to_string(),
-            account_pubkey: update.pubkey.to_string(),
+            account_pubkey: hex::encode(&update.account.as_ref().unwrap().pubkey),
             program_id: program_id.clone(),
             program_name: program_metadata.name.clone(),
             slot: update.slot,
@@ -64,7 +64,7 @@ impl UnifiedParser {
             raw_data: account.data.clone(),
             parsed_data,
             lamports: account.lamports,
-            owner: account.owner.to_string(),
+            owner: hex::encode(&account.owner),
             executable: account.executable,
             rent_epoch: account.rent_epoch,
             metadata: HashMap::new(),
@@ -182,8 +182,8 @@ impl UnifiedParser {
             "type": "token_account",
             "mint": hex::encode(&data[0..32]),
             "owner": hex::encode(&data[32..64]),
-            "amount": u64::from_le_bytes(data[64..72].try_into().unwrap_or([0; 8])),
-            "raw_size": data.len()
+            "amount": u64::from_le_bytes(data[64..72].try_into().unwrap_or([0; 8])) as i64,
+            "raw_size": data.len() as i32
         })
     }
 
@@ -193,7 +193,7 @@ impl UnifiedParser {
         // In production, you would use yellowstone-vixen-pumpfun-parser
         Ok(doc! {
             "type": "pumpfun_account",
-            "data_size": data.len(),
+            "data_size": data.len() as i32,
             "raw_data": hex::encode(data)
         })
     }
@@ -204,7 +204,7 @@ impl UnifiedParser {
         // In production, you would use yellowstone-vixen-raydium-amm-v4-parser
         Ok(doc! {
             "type": "raydium_amm_v4_account",
-            "data_size": data.len(),
+            "data_size": data.len() as i32,
             "raw_data": hex::encode(data)
         })
     }
@@ -213,7 +213,7 @@ impl UnifiedParser {
     async fn parse_generic_account(&self, data: &[u8]) -> ParseResult<Document> {
         Ok(doc! {
             "type": "generic_account",
-            "data_size": data.len(),
+            "data_size": data.len() as i32,
             "data_hash": sha256::digest(data)
         })
     }
@@ -239,9 +239,9 @@ impl UnifiedParser {
         };
 
         let parsed = doc! {
-            "instruction_id": data[0],
+            "instruction_id": data[0] as i32,
             "type": instruction_type,
-            "data_size": data.len()
+            "data_size": data.len() as i32
         };
 
         Ok((parsed, instruction_type.to_string()))
@@ -265,7 +265,7 @@ impl UnifiedParser {
         let parsed = doc! {
             "type": "pumpfun_instruction",
             "instruction_type": instruction_type,
-            "data_size": data.len()
+            "data_size": data.len() as i32
         };
 
         Ok((parsed, instruction_type.to_string()))
@@ -290,7 +290,7 @@ impl UnifiedParser {
         let parsed = doc! {
             "type": "raydium_amm_v4_instruction",
             "instruction_type": instruction_type,
-            "data_size": data.len()
+            "data_size": data.len() as i32
         };
 
         Ok((parsed, instruction_type.to_string()))
@@ -300,7 +300,7 @@ impl UnifiedParser {
     async fn parse_generic_instruction(&self, data: &[u8]) -> ParseResult<(Document, String)> {
         let parsed = doc! {
             "type": "generic_instruction",
-            "data_size": data.len(),
+            "data_size": data.len() as i32,
             "data_hash": sha256::digest(data)
         };
 

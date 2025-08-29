@@ -5,7 +5,7 @@ use yellowstone_vixen_yellowstone_grpc_source::YellowstoneGrpcConfig;
 
 /// Application configuration structure
 /// Loads from config.toml and supports environment variables
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct AppConfig {
     /// Data source configuration
     pub source: SourceConfig,
@@ -19,7 +19,7 @@ pub struct AppConfig {
     pub processing: ProcessingConfig,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 pub enum SourceConfig {
     /// Primary Yellowstone gRPC source
@@ -31,7 +31,7 @@ pub enum SourceConfig {
 }
 
 /// Yellowstone gRPC source configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct YellowstoneSourceConfig {
     /// Yellowstone gRPC configuration
     #[serde(flatten)]
@@ -244,39 +244,39 @@ impl Default for ProcessingConfig {
 
 impl AppConfig {
     /// Load configuration from file
-    pub fn from_file(path: &PathBuf) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn from_file(path: &PathBuf) -> Result<Self, anyhow::Error> {
         let content = std::fs::read_to_string(path)
-            .map_err(|e| format!("Failed to read config file '{}': {}", path.display(), e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to read config file '{}': {}", path.display(), e))?;
         
         let config: AppConfig = toml::from_str(&content)
-            .map_err(|e| format!("Failed to parse config file '{}': {}", path.display(), e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to parse config file '{}': {}", path.display(), e))?;
         
         Ok(config)
     }
 
     /// Validate configuration
-    pub fn validate(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn validate(&self) -> Result<(), anyhow::Error> {
         // Validate database URI
         if self.database.uri.is_empty() {
-            return Err("Database URI cannot be empty".into());
+            return Err(anyhow::anyhow!("Database URI cannot be empty"));
         }
 
         // Validate database name
         if self.database.database_name.is_empty() {
-            return Err("Database name cannot be empty".into());
+            return Err(anyhow::anyhow!("Database name cannot be empty"));
         }
 
         // Validate processing configuration
         if self.processing.buffer_size == 0 {
-            return Err("Buffer size must be greater than 0".into());
+            return Err(anyhow::anyhow!("Buffer size must be greater than 0"));
         }
 
         if self.processing.worker_threads == 0 {
-            return Err("Worker threads must be greater than 0".into());
+            return Err(anyhow::anyhow!("Worker threads must be greater than 0"));
         }
 
         if self.processing.batch_size == 0 {
-            return Err("Batch size must be greater than 0".into());
+            return Err(anyhow::anyhow!("Batch size must be greater than 0"));
         }
 
         Ok(())

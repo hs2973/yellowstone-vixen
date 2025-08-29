@@ -1,0 +1,75 @@
+# Configuration for Solana Stream Client
+
+# Server connection settings
+server:
+  # Base URL of the stream processor
+  base_url: "http://localhost:8080"
+  
+  # Timeout for HTTP requests
+  timeout: 30s
+  
+  # Maximum number of retry attempts
+  max_retries: 3
+  
+  # Reconnection settings for SSE streams
+  reconnect:
+    # Initial delay before reconnecting
+    initial_delay: 1s
+    
+    # Maximum delay between reconnections
+    max_delay: 60s
+    
+    # Backoff multiplier for exponential backoff
+    backoff_multiplier: 2.0
+    
+    # Maximum number of reconnection attempts (0 = infinite)
+    max_attempts: 0
+
+# Data processing settings
+processing:
+  # Buffer size for incoming messages
+  buffer_size: 1000
+  
+  # Number of worker goroutines for processing
+  workers: 4
+  
+  # Batch size for processing messages
+  batch_size: 50
+  
+  # Timeout for batching messages
+  batch_timeout: 5s
+
+# Logging configuration
+logging:
+  # Log level: debug, info, warn, error
+  level: "info"
+  
+  # Log format: text, json
+  format: "text"
+  
+  # Include timestamps in logs
+  timestamp: true
+
+# Data filtering settings
+filters:
+  # Only process trading-related instructions
+  trading_only: true
+  
+  # Specific programs to monitor (empty = all supported programs)
+  programs: []
+  # Example:
+  # - "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"  # Pump.fun
+  # - "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"  # Raydium AMM V4
+  
+  # Specific token mints to monitor (empty = all tokens)
+  token_mints: []
+  # Example:
+  # - "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # USDC
+  # - "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"  # USDT
+  
+  # Specific instruction types to process (empty = all trading types)
+  instruction_types: []
+  # Example:
+  # - "buy"
+  # - "sell" 
+  # - "swap"
