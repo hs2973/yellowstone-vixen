@@ -1,0 +1,116 @@
+# Configuration file for Solana Stream Processor
+# This file contains all the necessary settings for running the application
+
+# Data source configuration - supports both Yellowstone gRPC and Solana RPC
+[source]
+type = "yellowstone"
+
+# Yellowstone gRPC configuration (primary data source)
+[source.grpc]
+# The endpoint of the Yellowstone server
+endpoint = "https://index.rpcpool.com"
+# The x-token for authentication (replace with your actual token)
+x-token = "YOUR_YELLOWSTONE_TOKEN_HERE"
+# Connection timeout in seconds
+timeout = 120
+# Optional: commitment level (processed, confirmed, finalized)
+# commitment-level = "confirmed"
+# Optional: start from specific slot
+# from-slot = 123456789
+
+# Reconnection settings for resilient connections
+[source.reconnect]
+# Initial retry delay in seconds
+initial_delay = 1
+# Maximum retry delay in seconds
+max_delay = 60
+# Exponential backoff multiplier
+backoff_multiplier = 2.0
+# Maximum number of retry attempts (0 = infinite)
+max_attempts = 0
+
+# MongoDB database configuration
+[database]
+# MongoDB connection URI
+uri = "mongodb://localhost:27017"
+# Database name for storing parsed data
+database_name = "solana_stream"
+
+# Connection pool settings
+[database.pool]
+# Minimum number of connections in pool
+min_connections = 5
+# Maximum number of connections in pool
+max_connections = 100
+# Connection timeout in seconds
+connect_timeout = 10
+# Server selection timeout in seconds
+server_selection_timeout = 30
+
+# Database indexing configuration
+[database.indexes]
+# Create indexes on startup
+create_on_startup = true
+# Index on token_mint field for fast token queries
+token_mint_index = true
+# Index on slot field for chronological queries
+slot_index = true
+# Index on timestamp field for time-based queries
+timestamp_index = true
+
+# Web server configuration for streaming APIs
+[server]
+# Server bind address and port
+bind_address = "127.0.0.1:8080"
+# Maximum concurrent connections
+max_connections = 1000
+# Request timeout in seconds
+request_timeout = 30
+
+# CORS configuration for web APIs
+[server.cors]
+# Allow all origins (set to false for production)
+allow_all_origins = true
+# Specific allowed origins (used when allow_all_origins = false)
+allowed_origins = []
+# Allowed HTTP methods
+allowed_methods = ["GET", "POST", "OPTIONS"]
+# Allowed headers
+allowed_headers = ["*"]
+
+# Prometheus metrics configuration (optional)
+[metrics]
+# Metrics endpoint path
+path = "/metrics"
+# Metrics export interval in seconds
+export_interval = 15
+# Job name for Prometheus scraping
+job_name = "solana-stream-processor"
+# Instance name for Prometheus
+instance_name = "localhost:8080"
+
+# Processing configuration
+[processing]
+# Buffer size for incoming messages
+buffer_size = 10000
+# Number of worker threads for processing
+worker_threads = 8
+# Batch size for MongoDB inserts (higher = better performance, more memory)
+batch_size = 100
+# Batch timeout in milliseconds (flush batches even if not full)
+batch_timeout_ms = 1000
+
+# Filter configuration for processing only relevant data
+[processing.filters]
+# Only process trading-related instructions (buy, sell, swap, etc.)
+trading_instructions_only = true
+# Optional: minimum slot to process from
+# min_slot = 123456789
+# Supported program IDs (leave empty to process all supported programs)
+program_ids = []
+
+# Instruction types to process per program (leave empty for all)
+[processing.filters.instruction_types]
+# Examples:
+# "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P" = ["buy", "sell", "create"]  # Pump.fun
+# "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8" = ["swap", "add_liquidity"]  # Raydium AMM V4

@@ -1,0 +1,76 @@
+[package]
+name = "solana-stream-processor"
+version = "0.1.0"
+edition = "2021"
+description = "Production-ready Rust application for real-time processing of high-volume gRPC messages from Solana blockchain data sources"
+license = "MIT"
+repository = "https://github.com/rpcpool/yellowstone-vixen"
+
+[dependencies]
+# Core Vixen dependencies
+yellowstone-vixen = { workspace = true }
+yellowstone-vixen-core = { workspace = true, features = ["proto"] }
+yellowstone-vixen-stream = { workspace = true }
+yellowstone-vixen-proto = { workspace = true }
+
+# Parser crates for supported programs
+yellowstone-vixen-parser = { workspace = true }
+yellowstone-vixen-pumpfun-parser = { workspace = true }
+yellowstone-vixen-pump-swaps-parser = { workspace = true }
+yellowstone-vixen-raydium-launchpad-parser = { workspace = true }
+yellowstone-vixen-raydium-amm-v4-parser = { workspace = true }
+yellowstone-vixen-boop-parser = { workspace = true }
+yellowstone-vixen-moonshot-parser = { workspace = true }
+yellowstone-vixen-meteora-parser = { workspace = true }
+yellowstone-vixen-meteora-amm-parser = { workspace = true }
+
+# Source integrations
+yellowstone-vixen-yellowstone-grpc-source = { workspace = true }
+yellowstone-vixen-solana-rpc-source = { workspace = true }
+
+# gRPC and Yellowstone integration
+yellowstone-grpc-client = { workspace = true }
+yellowstone-grpc-proto = { workspace = true }
+
+# Async runtime and utilities
+tokio = { version = "1.0", features = ["full"] }
+futures = "0.3"
+async-trait = "0.1"
+
+# Database integration
+mongodb = "3.1"
+bson = { version = "2.13", features = ["chrono-0_4"] }
+
+# Web server and streaming
+axum = { version = "0.7", features = ["ws"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+tokio-stream = "0.1"
+
+# Configuration and serialization
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+serde_json = "1.0"
+
+# Logging and tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# CLI and configuration
+clap = { version = "4.5", features = ["derive", "cargo", "wrap_help"] }
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# Other utilities
+uuid = { version = "1.0", features = ["v4", "serde"] }
+once_cell = "1.19"
+hex = "0.4"
+num_cpus = "1.0"
+
+[build-dependencies]
+prost-build = "0.13.1"
