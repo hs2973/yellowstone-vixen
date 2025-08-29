@@ -1,0 +1,32 @@
+# Solana Stream Processor Configuration
+
+# MongoDB connection settings
+mongodb_uri = "mongodb://localhost:27017"
+
+# Web server port
+web_server_port = 8080
+
+# Yellowstone Vixen configuration
+[vixen]
+# Use RPC endpoint for development (gRPC requires specific setup)
+rpc_endpoint = "https://api.mainnet-beta.solana.com"
+# grpc_endpoint = "https://yellowstone-grpc.example.com"
+# auth_token = "your-auth-token"
+
+# Programs to monitor
+programs = [
+    "11111111111111111111111111111112",  # System Program
+    "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",  # SPL Token Program
+]
+
+# Database configuration
+[database]
+database_name = "solana_stream_processor"
+pool_size = 10
+timeout_seconds = 30
+
+# SSE configuration
+[sse]
+max_connections = 100
+buffer_size = 1000
+heartbeat_interval = 30
