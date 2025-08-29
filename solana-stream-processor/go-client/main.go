@@ -7,10 +7,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 // EssentialData matches the Rust struct for parsed Solana data
@@ -28,18 +27,13 @@ type EssentialData struct {
 
 // SSEClient handles Server-Sent Events connection to the Rust application
 type SSEClient struct {
-	url    string
-	logger *logrus.Logger
+	url string
 }
 
 // NewSSEClient creates a new SSE client
 func NewSSEClient(url string) *SSEClient {
-	logger := logrus.New()
-	logger.SetLevel(logrus.InfoLevel)
-	
 	return &SSEClient{
-		url:    url,
-		logger: logger,
+		url: url,
 	}
 }
 
@@ -51,7 +45,7 @@ func (c *SSEClient) Connect(ctx context.Context) error {
 			return ctx.Err()
 		default:
 			if err := c.connectOnce(ctx); err != nil {
-				c.logger.WithError(err).Error("SSE connection failed, retrying in 5 seconds...")
+				log.Printf("SSE connection failed, retrying in 5 seconds: %v", err)
 				time.Sleep(5 * time.Second)
 				continue
 			}
@@ -61,7 +55,7 @@ func (c *SSEClient) Connect(ctx context.Context) error {
 
 // connectOnce handles a single connection attempt
 func (c *SSEClient) connectOnce(ctx context.Context) error {
-	c.logger.WithField("url", c.url).Info("Connecting to SSE stream...")
+	log.Printf("Connecting to SSE stream: %s", c.url)
 	
 	req, err := http.NewRequestWithContext(ctx, "GET", c.url, nil)
 	if err != nil {
@@ -85,7 +79,7 @@ func (c *SSEClient) connectOnce(ctx context.Context) error {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 	
-	c.logger.Info("Connected to SSE stream successfully")
+	log.Println("Connected to SSE stream successfully")
 	
 	scanner := bufio.NewScanner(resp.Body)
 	var eventType string
@@ -112,7 +106,7 @@ func (c *SSEClient) connectOnce(ctx context.Context) error {
 			// Event ID (not used in this example)
 		case strings.HasPrefix(line, ":"):
 			// Comment line (heartbeat)
-			c.logger.Debug("Received heartbeat")
+			log.Println("Received heartbeat")
 		}
 	}
 	
@@ -129,10 +123,7 @@ func (c *SSEClient) handleEvent(eventType, data string) {
 	case "instruction":
 		c.handleInstructionEvent(data)
 	default:
-		c.logger.WithFields(logrus.Fields{
-			"event_type": eventType,
-			"data":       data,
-		}).Debug("Received unknown event type")
+		log.Printf("Received unknown event type: %s, data: %s", eventType, data)
 	}
 }
 
@@ -140,7 +131,7 @@ func (c *SSEClient) handleEvent(eventType, data string) {
 func (c *SSEClient) handleInstructionEvent(data string) {
 	var essentialData EssentialData
 	if err := json.Unmarshal([]byte(data), &essentialData); err != nil {
-		c.logger.WithError(err).Error("Failed to parse instruction data")
+		log.Printf("Failed to parse instruction data: %v", err)
 		return
 	}
 	
@@ -150,14 +141,23 @@ func (c *SSEClient) handleInstructionEvent(data string) {
 
 // processInstruction handles the business logic for processing instructions
 func (c *SSEClient) processInstruction(data *EssentialData) {
-	c.logger.WithFields(logrus.Fields{
-		"program_id":         data.ProgramID,
-		"instruction_type":   data.InstructionType,
-		"transaction_sig":    data.TransactionSignature,
-		"slot":              data.Slot,
-		"blockchain_time":   time.Unix(data.BlockchainTimestamp, 0),
-		"ingestion_time":    time.Unix(data.IngestionTimestamp, 0),
-	}).Info("Processed instruction")
+	log.Printf("📦 Instruction Processed:")
+	log.Printf("  Program ID: %s", data.ProgramID)
+	log.Printf("  Type: %s", data.InstructionType)
+	log.Printf("  Transaction: %s", data.TransactionSignature)
+	log.Printf("  Slot: %d", data.Slot)
+	log.Printf("  Blockchain Time: %s", time.Unix(data.BlockchainTimestamp, 0).Format(time.RFC3339))
+	log.Printf("  Ingestion Time: %s", time.Unix(data.IngestionTimestamp, 0).Format(time.RFC3339))
+	
+	if data.TokenMint != nil {
+		log.Printf("  Token Mint: %s", *data.TokenMint)
+	}
+	
+	if amount, ok := data.InstructionData["amount"].(float64); ok {
+		log.Printf("  Amount: %.0f", amount)
+	}
+	
+	log.Println("  ---")
 	
 	// Add your custom business logic here
 	// For example:
@@ -168,18 +168,15 @@ func (c *SSEClient) processInstruction(data *EssentialData) {
 	
 	// Example: Log token transfers
 	if data.InstructionType == "transfer" && data.TokenMint != nil {
-		c.logger.WithFields(logrus.Fields{
-			"token_mint": *data.TokenMint,
-			"type":       "token_transfer",
-		}).Info("Token transfer detected")
+		log.Printf("💰 Token transfer detected: %s", *data.TokenMint)
 	}
 }
 
 func main() {
 	// Configuration
 	sseURL := "http://localhost:8080/events/stream"
-	if len(log.Args()) > 1 {
-		sseURL = log.Args()[1]
+	if len(os.Args) > 1 {
+		sseURL = os.Args[1]
 	}
 	
 	// Create SSE client
@@ -190,10 +187,11 @@ func main() {
 	defer cancel()
 	
 	// Start the client
-	log.Printf("Starting Solana Stream Processor Go Client")
-	log.Printf("Connecting to: %s", sseURL)
+	log.Printf("🚀 Starting Solana Stream Processor Go Client")
+	log.Printf("📡 Connecting to: %s", sseURL)
+	log.Println("Press Ctrl+C to stop")
 	
 	if err := client.Connect(ctx); err != nil {
-		log.Fatalf("Client failed: %v", err)
+		log.Fatalf("❌ Client failed: %v", err)
 	}
 }

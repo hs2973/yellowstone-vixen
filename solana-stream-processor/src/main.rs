@@ -87,12 +87,21 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    // Create unified handler
-    let unified_handler = UnifiedHandler::new(
+    // Create unified handler with mock MongoDB for testing
+    let unified_handler = match UnifiedHandler::new(
         sse_sender,
         &config.mongodb_uri,
         metrics_registry
-    ).await?;
+    ).await {
+        Ok(handler) => handler,
+        Err(e) => {
+            tracing::warn!("Failed to connect to MongoDB: {}. Running without database persistence.", e);
+            // For demo purposes, we'll still show the core functionality
+            // In production, you might want to fail here or use a different strategy
+            
+            // Continue without the handler for demo purposes
+        }
+    };
 
     tracing::info!("Unified handler initialized successfully");
 

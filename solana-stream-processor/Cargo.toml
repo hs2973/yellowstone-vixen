@@ -47,3 +47,7 @@ yellowstone-vixen-proto = { path = "../crates/proto" }
 
 [dev-dependencies]
 tokio-test = "0.4"
+
+[[bin]]
+name = "demo"
+path = "src/demo.rs"
